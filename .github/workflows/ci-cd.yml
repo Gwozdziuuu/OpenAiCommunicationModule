@@ -111,6 +111,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      security-events: write
     
     steps:
     - name: Run Trivy vulnerability scanner
