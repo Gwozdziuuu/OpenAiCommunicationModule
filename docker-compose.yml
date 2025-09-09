@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  openai-processor:
+    build: .
+    ports:
+      - "${PORT:-8090}:${PORT:-8090}"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=${PORT:-8090}
+      - DEBUG=${DEBUG:-false}
+      - OPENAI_DEFAULT_MODEL=${OPENAI_DEFAULT_MODEL:-gpt-4o}
+      - OPENAI_MAX_TOKENS=${OPENAI_MAX_TOKENS:-1000}
+      - REQUIRE_TOKEN=${REQUIRE_TOKEN:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT:-8090}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Opcjonalnie: nginx jako reverse proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - openai-processor
+    restart: unless-stopped
+    profiles:
+      - with-proxy
