@@ -1,5 +1,5 @@
 # OpenAI Message Processor
-
+.
 ![CI/CD Pipeline](https://github.com/Gwozdziuuu/OpenAiCommunicationModule/workflows/CI/CD%20Pipeline/badge.svg)
 ![Docker Pulls](https://img.shields.io/docker/pulls/gwozdziuuu/openai-communication-module)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/Gwozdziuuu/OpenAiCommunicationModule)
