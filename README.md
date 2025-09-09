@@ -134,7 +134,7 @@ docker run --env-file .env -p 8090:8090 gwozdziuuu/openai-communication-module:l
 
 The project includes automated CI/CD pipeline with GitHub Actions:
 
-- **Continuous Integration**: Runs tests on Python 3.9, 3.10, 3.11
+- **Continuous Integration**: Runs tests on Python 3.9
 - **Docker Build**: Builds and pushes multi-platform images to Docker Hub
 - **Security Scanning**: Vulnerability scanning with Trivy
 - **Release Management**: Automated releases with semantic versioning
