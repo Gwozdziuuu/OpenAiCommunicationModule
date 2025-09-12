@@ -9,6 +9,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Ustaw katalog roboczy
 WORKDIR /app
 
+# Install system dependencies including curl for health checks
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Skopiuj i zainstaluj zależności
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
