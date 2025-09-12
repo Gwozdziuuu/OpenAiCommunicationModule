@@ -56,7 +56,6 @@ python3 examples/basic_usage.py
 Serwer domyślnie uruchamia się na `http://localhost:8090`
 
 - `GET /health` - Sprawdzenie stanu serwera
-- `GET /models` - Lista dostępnych modeli
 - `POST /process` - Przetwarzanie wiadomości
 
 ### Przykład żądania POST /process

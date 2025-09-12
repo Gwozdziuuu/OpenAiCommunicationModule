@@ -28,7 +28,5 @@ EXPOSE ${PORT:-8090}
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:${PORT:-8090}/health || exit 1
 
-# Domyślne komendy
-# Rozwój: CMD ["python3", "main.py", "server"]
-# Produkcja: 
-CMD ["gunicorn", "--config", "gunicorn.conf.py", "src.api.server:create_app()"]
+# Produkcja z Gunicorn - potrzebne dla długich OpenAI requestów
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "wsgi:app"]
