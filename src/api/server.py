@@ -3,15 +3,16 @@
 REST API Server for OpenAI application
 """
 
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify
 import logging
 import sys
 import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from openai_processor.client import process_message
 from config import Config
+from api.endpoints.health import HealthEndpoint
+from api.endpoints.process import ProcessEndpoint
 
 
 def create_app():
@@ -21,93 +22,11 @@ def create_app():
     
     @app.route('/health', methods=['GET'])
     def health_check():
-        """
-        Server health check endpoint
-        """
-        return jsonify({
-            "status": "healthy",
-            "service": "OpenAI Message Processor"
-        }), 200
+        return HealthEndpoint.health_check()
 
     @app.route('/process', methods=['POST'])
     def process_openai_message():
-        """
-        Endpoint for processing messages through OpenAI
-        
-        Expected JSON data:
-        {
-            "text": "message content",
-            "image_url": "http://example.com/image.jpg",  // optional
-            "token": "openai-api-token",  // required
-            "model": "gpt-4o"  // required
-        }
-        """
-        try:
-            if not request.is_json:
-                return jsonify({
-                    "error": "Content-Type must be application/json"
-                }), 400
-            
-            data = request.get_json()
-            
-            if not data:
-                return jsonify({
-                    "error": "No JSON data in request"
-                }), 400
-            
-            # Get parameters
-            text = data.get('text', '').strip()
-            image_url = data.get('image_url')
-            api_token = data.get('token', '').strip()
-            model = data.get('model', '').strip()
-            
-            # Validate required fields
-            if not text:
-                return jsonify({
-                    "error": "Field 'text' is required and cannot be empty"
-                }), 400
-            
-            if not api_token:
-                return jsonify({
-                    "error": "Field 'token' is required"
-                }), 400
-                
-            if not model:
-                return jsonify({
-                    "error": "Field 'model' is required"
-                }), 400
-            
-            # Process message
-            logging.info(f"Processing message for model: {model}")
-            if image_url:
-                logging.info(f"With image: {image_url}")
-            
-            response = process_message(
-                text=text,
-                image_url=image_url,
-                api_token=api_token,
-                model=model
-            )
-            
-            return jsonify({
-                "success": True,
-                "response": response["content"],
-                "model_used": model,
-                "has_image": bool(image_url),
-                "usage": response["usage"]
-            }), 200
-            
-        except ValueError as e:
-            logging.error(f"Validation error: {str(e)}")
-            return jsonify({
-                "error": str(e)
-            }), 400
-            
-        except Exception as e:
-            logging.error(f"Server error: {str(e)}")
-            return jsonify({
-                "error": f"Error during processing: {str(e)}"
-            }), 500
+        return ProcessEndpoint.process_openai_message()
 
     @app.errorhandler(404)
     def not_found(error):
