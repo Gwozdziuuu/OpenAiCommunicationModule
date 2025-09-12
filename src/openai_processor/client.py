@@ -28,7 +28,7 @@ class OpenAIClient:
         self.client = OpenAI(api_key=api_token)
     
     def process_message(self, text: str, image_url: Optional[str] = None, 
-                       model: str = None) -> str:
+                       model: str = None, response_format: Optional[dict] = None) -> str:
         """
         Process message using OpenAI API
         
@@ -36,6 +36,7 @@ class OpenAIClient:
             text: Message text
             image_url: URL to image (optional)
             model: AI model to use
+            response_format: JSON Schema for structured response (optional)
         
         Returns:
             Response from OpenAI
@@ -71,11 +72,18 @@ class OpenAIClient:
             })
         
         try:
-            response = self.client.chat.completions.create(
-                model=model,
-                messages=messages,
-                max_tokens=Config.MAX_TOKENS()
-            )
+            # Prepare request parameters
+            request_params = {
+                "model": model,
+                "messages": messages,
+                "max_tokens": Config.MAX_TOKENS()
+            }
+            
+            # Add response_format if provided
+            if response_format:
+                request_params["response_format"] = response_format
+            
+            response = self.client.chat.completions.create(**request_params)
             
             # Return both content and token information
             return {
@@ -92,7 +100,7 @@ class OpenAIClient:
 
 
 def process_message(text: str, image_url: Optional[str] = None, 
-                   api_token: str = "", model: str = None) -> str:
+                   api_token: str = "", model: str = None, response_format: Optional[dict] = None) -> str:
     """
     Helper function for processing messages (backwards compatibility)
     
@@ -101,6 +109,7 @@ def process_message(text: str, image_url: Optional[str] = None,
         image_url: URL to image (optional)
         api_token: OpenAI authorization token
         model: AI model to use
+        response_format: JSON Schema for structured response (optional)
     
     Returns:
         Response from OpenAI
@@ -108,4 +117,4 @@ def process_message(text: str, image_url: Optional[str] = None,
     if not model:
         raise ValueError("Model parameter is required")
     client = OpenAIClient(api_token)
-    return client.process_message(text, image_url, model)
+    return client.process_message(text, image_url, model, response_format)

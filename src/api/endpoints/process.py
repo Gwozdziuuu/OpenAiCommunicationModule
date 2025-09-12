@@ -40,7 +40,9 @@ class ProcessEndpoint:
             'text': data.get('text', '').strip(),
             'image_url': data.get('image_url'),
             'api_token': data.get('token', '').strip(),
-            'model': data.get('model', '').strip()
+            'model': data.get('model', '').strip(),
+            'response_format': data.get('response_format'),
+            'output_example': data.get('output_example')
         }
     
     @staticmethod
@@ -62,6 +64,70 @@ class ProcessEndpoint:
             }), 400
             
         return None, None
+    
+    @staticmethod
+    def _prepare_response_format(params):
+        """Prepare response format from output_example or response_format"""
+        if params['output_example']:
+            # Convert example to JSON schema
+            import json
+            try:
+                example = json.loads(params['output_example']) if isinstance(params['output_example'], str) else params['output_example']
+                schema = ProcessEndpoint._generate_schema_from_example(example)
+                return {
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": "response",
+                        "schema": schema
+                    }
+                }
+            except (json.JSONDecodeError, TypeError):
+                logging.warning("Invalid output_example format, ignoring")
+                return params['response_format']
+        return params['response_format']
+    
+    @staticmethod
+    def _generate_schema_from_example(example):
+        """Generate JSON schema from example object"""
+        def get_type_from_value(value):
+            if isinstance(value, str):
+                return "string"
+            elif isinstance(value, int):
+                return "integer" 
+            elif isinstance(value, float):
+                return "number"
+            elif isinstance(value, bool):
+                return "boolean"
+            elif isinstance(value, list):
+                return "array"
+            elif isinstance(value, dict):
+                return "object"
+            else:
+                return "string"
+        
+        def build_schema(obj):
+            if isinstance(obj, dict):
+                properties = {}
+                for key, value in obj.items():
+                    if isinstance(value, dict):
+                        properties[key] = build_schema(value)
+                    elif isinstance(value, list) and len(value) > 0:
+                        properties[key] = {
+                            "type": "array",
+                            "items": build_schema(value[0]) if isinstance(value[0], dict) else {"type": get_type_from_value(value[0])}
+                        }
+                    else:
+                        properties[key] = {"type": get_type_from_value(value)}
+                
+                return {
+                    "type": "object",
+                    "properties": properties,
+                    "required": list(properties.keys())
+                }
+            else:
+                return {"type": get_type_from_value(obj)}
+        
+        return build_schema(example)
     
     @staticmethod
     def _log_processing_info(model, image_url):
@@ -91,7 +157,29 @@ class ProcessEndpoint:
             "text": "message content",
             "image_url": "http://example.com/image.jpg",  // optional
             "token": "openai-api-token",  // required
-            "model": "gpt-4o"  // required
+            "model": "gpt-4o",  // required
+            "output_example": {  // optional - simple example, AI will match format
+                "description": "A beautiful sunset over mountains",
+                "objects": ["mountain", "sky", "clouds"],
+                "mood": "peaceful"
+            }
+        }
+        
+        Alternative with explicit response_format:
+        {
+            "text": "message content",
+            "response_format": {  // optional - explicit JSON Schema
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "response",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "answer": {"type": "string"}
+                        }
+                    }
+                }
+            }
         }
         """
         # Validate request format
@@ -110,13 +198,17 @@ class ProcessEndpoint:
         # Log processing information
         ProcessEndpoint._log_processing_info(params['model'], params['image_url'])
         
+        # Prepare response format
+        prepared_format = ProcessEndpoint._prepare_response_format(params)
+        
         # Process message (only this part can actually throw exceptions)
         try:
             response = process_message(
                 text=params['text'],
                 image_url=params['image_url'],
                 api_token=params['api_token'],
-                model=params['model']
+                model=params['model'],
+                response_format=prepared_format
             )
             
             return ProcessEndpoint._build_success_response(
