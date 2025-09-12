@@ -137,11 +137,23 @@ class ProcessEndpoint:
             logging.info(f"With image: {image_url}")
     
     @staticmethod
-    def _build_success_response(response, model, image_url):
+    def _build_success_response(response, model, image_url, was_structured=False):
         """Build successful response JSON"""
+        import json
+        
+        content = response["content"]
+        
+        # If it was a structured response, try to parse the JSON
+        if was_structured and isinstance(content, str):
+            try:
+                content = json.loads(content)
+            except json.JSONDecodeError:
+                # If parsing fails, keep as string
+                pass
+        
         return jsonify({
             "success": True,
-            "response": response["content"],
+            "response": content,
             "model_used": model,
             "has_image": bool(image_url),
             "usage": response["usage"]
@@ -212,7 +224,8 @@ class ProcessEndpoint:
             )
             
             return ProcessEndpoint._build_success_response(
-                response, params['model'], params['image_url']
+                response, params['model'], params['image_url'], 
+                was_structured=bool(prepared_format)
             )
             
         except ValueError as e:
