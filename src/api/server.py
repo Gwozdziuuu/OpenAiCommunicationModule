@@ -38,8 +38,8 @@ def create_app():
         {
             "text": "message content",
             "image_url": "http://example.com/image.jpg",  // optional
-            "token": "openai-api-token",
-            "model": "gpt-4o"  // optional, defaults to gpt-4o
+            "token": "openai-api-token",  // required
+            "model": "gpt-4o"  // required
         }
         """
         try:
@@ -59,7 +59,7 @@ def create_app():
             text = data.get('text', '').strip()
             image_url = data.get('image_url')
             api_token = data.get('token', '').strip()
-            model = data.get('model', Config.DEFAULT_MODEL()).strip()
+            model = data.get('model', '').strip()
             
             # Validate required fields
             if not text:
@@ -67,9 +67,14 @@ def create_app():
                     "error": "Field 'text' is required and cannot be empty"
                 }), 400
             
-            if Config.REQUIRE_TOKEN() and not api_token:
+            if not api_token:
                 return jsonify({
                     "error": "Field 'token' is required"
+                }), 400
+                
+            if not model:
+                return jsonify({
+                    "error": "Field 'model' is required"
                 }), 400
             
             # Process message

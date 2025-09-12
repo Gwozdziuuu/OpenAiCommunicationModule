@@ -3,7 +3,6 @@
 Unit tests for OpenAI client
 """
 
-import pytest
 import sys
 import os
 
@@ -20,23 +19,50 @@ def test_openai_client_init():
     assert client.client is not None
     
     # Test without token
-    with pytest.raises(ValueError, match="Authorization token is required"):
+    try:
         OpenAIClient("")
+        assert False, "Should raise ValueError"
+    except ValueError as e:
+        assert "Authorization token is required" in str(e)
 
 
 def test_process_message_validation():
     """Test parameter validation"""
+    client = OpenAIClient("test-token")
+    
     # Test without text
-    with pytest.raises(ValueError, match="Message text is required"):
-        client = OpenAIClient("test-token")
-        client.process_message("")
+    try:
+        client.process_message("", model="gpt-4o")
+        assert False, "Should raise ValueError"
+    except ValueError as e:
+        assert "Message text is required" in str(e)
+    
+    # Test without model
+    try:
+        client.process_message("test", model="")
+        assert False, "Should raise ValueError"
+    except ValueError as e:
+        assert "Model parameter is required" in str(e)
     
     # Test without token in helper function
-    with pytest.raises(ValueError, match="Authorization token is required"):
-        process_message("test", api_token="")
+    try:
+        process_message("test", api_token="", model="gpt-4o")
+        assert False, "Should raise ValueError"
+    except ValueError as e:
+        assert "Authorization token is required" in str(e)
+    
+    # Test without model in helper function
+    try:
+        process_message("test", api_token="test-token", model="")
+        assert False, "Should raise ValueError"
+    except ValueError as e:
+        assert "Model parameter is required" in str(e)
 
 
 if __name__ == '__main__':
+    print("=== TESTING OPENAI CLIENT ===")
+    print()
+    
     # Simple tests without pytest
     try:
         test_openai_client_init()
@@ -49,3 +75,6 @@ if __name__ == '__main__':
         print("✅ Parameter validation test - PASS")
     except Exception as e:
         print(f"❌ Parameter validation test - FAIL: {e}")
+    
+    print()
+    print("All tests completed!")

@@ -21,9 +21,6 @@ class Config:
     def get_debug(cls):
         return os.getenv('DEBUG', 'true').lower() in ('true', '1', 'yes', 'on')
     
-    @classmethod
-    def get_default_model(cls):
-        return os.getenv('OPENAI_DEFAULT_MODEL', 'gpt-4o')
     
     @classmethod
     def get_max_tokens(cls):
@@ -51,10 +48,6 @@ class Config:
         return cls.get_debug()
     
     @classmethod
-    def DEFAULT_MODEL(cls):
-        return cls.get_default_model()
-    
-    @classmethod
     def MAX_TOKENS(cls):
         return cls.get_max_tokens()
     
@@ -73,7 +66,6 @@ class Config:
         print(f"   HOST: {cls.HOST()}")
         print(f"   PORT: {cls.PORT()}")
         print(f"   DEBUG: {cls.DEBUG()}")
-        print(f"   DEFAULT_MODEL: {cls.DEFAULT_MODEL()}")
         print(f"   MAX_TOKENS: {cls.MAX_TOKENS()}")
         print(f"   REQUIRE_TOKEN: {cls.REQUIRE_TOKEN()}")
         print(f"   LOG_LEVEL: {cls.LOG_LEVEL()}")

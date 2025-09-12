@@ -43,8 +43,8 @@ class OpenAIClient:
         if not text:
             raise ValueError("Message text is required")
         
-        if model is None:
-            model = Config.DEFAULT_MODEL()
+        if not model:
+            raise ValueError("Model parameter is required")
         
         messages = []
         
@@ -105,7 +105,7 @@ def process_message(text: str, image_url: Optional[str] = None,
     Returns:
         Response from OpenAI
     """
-    if model is None:
-        model = Config.DEFAULT_MODEL()
+    if not model:
+        raise ValueError("Model parameter is required")
     client = OpenAIClient(api_token)
     return client.process_message(text, image_url, model)

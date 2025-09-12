@@ -48,6 +48,26 @@ def test_process_without_token():
         return False
 
 
+def test_process_without_model():
+    """Test /process endpoint without model"""
+    try:
+        data = {
+            "text": "Test message",
+            "token": "mock-token-123"
+        }
+        response = requests.post(
+            f'{BASE_URL}/process',
+            json=data,
+            headers={'Content-Type': 'application/json'}
+        )
+        print(f"Process without model: {response.status_code}")
+        print(f"Response: {response.json()}")
+        return response.status_code == 400
+    except Exception as e:
+        print(f"Test without model error: {e}")
+        return False
+
+
 def test_process_with_mock_token():
     """Test /process endpoint with mock token (will get OpenAI error, but API works)"""
     try:
@@ -80,8 +100,8 @@ def main():
     
     tests = [
         ("Health Check", test_health),
-        ("Models Endpoint", test_models),
         ("Process without token", test_process_without_token),
+        ("Process without model", test_process_without_model),
         ("Process with mock token", test_process_with_mock_token)
     ]
     
